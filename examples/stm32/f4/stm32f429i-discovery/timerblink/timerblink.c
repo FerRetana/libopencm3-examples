@@ -140,17 +140,22 @@ static void tim_setup(void)
 	 * might not be the raw APB1/APB2 clocks.  In various conditions they
 	 * are doubled.  See the Reference Manual for full details!
 	 */
-	timer_set_prescaler(TIM1, 0x1065); // 2563Hz clk
+	//timer_set_prescaler(TIM1, 0x1065); // 2563Hz clk
+	timer_set_prescaler(TIM1, 0x00FF);
     //timer_set_repetition_counter(TIM1, 15);
+    
     timer_disable_preload(TIM1);
     timer_continuous_mode(TIM1);
 
     /* Count period */
-	timer_set_period(TIM1, 2563);
-
+	//timer_set_period(TIM1, 2563);
+        timer_set_period(TIM1, 13124);
 	/* Set the initual output compare value for OC1. */
-	timer_set_oc_value(TIM1, TIM_OC1, 1282); // no usar los negativos
-
+	//timer_set_oc_value(TIM1, TIM_OC1, 1282); // no usar los negativos
+        //timer_set_oc_value(TIM1, TIM_OC1, 656); //Para un 5%
+        //timer_set_oc_value(TIM1, TIM_OC1, 984); // Para un 7.5% duty cycle
+        timer_set_oc_value(TIM1, TIM_OC1, 1312); // Para un 10% duty cycle
+        
     /* Disable outputs. */
     //timer_enable_oc_output(TIM1, TIM_OC1);
     timer_enable_oc_output(TIM1, TIM_OC1N);
@@ -192,26 +197,61 @@ void tim1_up_tim10_isr(void)
   gpio_toggle(LUP);
 }
 
+//--------------Nuevoooooo
+void delay_ms(uint32_t ms);
+
+
 
 int main(void)
 {
-	int i;
+	//int i;
 
 	clock_setup();
 	gpio_setup();
-    tim_setup();
+        tim_setup();
 
 	/* Set two LEDs for wigwag effect when toggling. */
 	gpio_set(LGREENF_PORT, LGREENF);
 
 	/* Blink the LEDs (PG13 and PG14) on the board. */
 	while (1) {
+		
 		/* Toggle LEDs. */
-		gpio_toggle(LGREENF_PORT, LGREENF);
-		for (i = 0; i < 6000000; i++) { /* Wait a bit. */
-			__asm__("nop");
-		}
+		//gpio_toggle(LGREENF_PORT, LGREENF);
+		//for (i = 0; i < 6000000; i++) { /* Wait a bit. */
+			//__asm__("nop");
+		//}
+		
+		//-----------------------Nuevooo
+		timer_set_oc_value(TIM1, TIM_OC1, 0);
+		delay_ms(2000);
+		timer_set_oc_value(TIM1, TIM_OC1, 1312);
+		delay_ms(1000);
+		timer_set_oc_value(TIM1, TIM_OC1, 13124);
+		delay_ms(3000);
+		timer_set_oc_value(TIM1, TIM_OC1, 6562);
+		delay_ms(1000);
+		timer_set_oc_value(TIM1, TIM_OC1, 13124);
+		delay_ms(5000);
 	}
 
 	return 0;
 }
+//nuevoooooooooooooooooooooooooo
+        void delay_ms(uint32_t ms)
+
+      {
+
+          for (uint32_t i = 0; i < ms; i++) {
+
+              for (uint32_t j = 0; j < 8400; j++) {
+
+                  __asm__("nop");
+
+              }
+
+          }
+
+      }
+      //------------------
+
